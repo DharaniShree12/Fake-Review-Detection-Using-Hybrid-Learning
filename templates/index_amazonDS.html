@@ -1,0 +1,1624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReviewGuard AI - Interactive Graph Network</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f1729 0%, #1a1f3a 50%, #0a0e27 100%);
+            min-height: 100vh;
+            color: #e5e7eb;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+            animation: gradientShift 25s ease infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-3%, -3%) rotate(2deg); }
+        }
+        
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 28px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 60px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 600;
+            color: #a78bfa;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 48px;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            color: #9ca3af;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.3s;
+            position: relative;
+            padding: 8px 0;
+        }
+        
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #fff;
+        }
+        
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #8b5cf6, #6366f1);
+            border-radius: 2px;
+        }
+        
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 60px 0 80px;
+        }
+        
+        .hero h1 {
+            font-size: 68px;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            letter-spacing: -2px;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 50%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p {
+            font-size: 19px;
+            color: #9ca3af;
+            max-width: 680px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 60px;
+        }
+        
+        .stat-card {
+            background: rgba(30, 35, 55, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: 20px;
+            padding: 40px 28px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 12px 32px rgba(139, 92, 246, 0.2);
+        }
+        
+        .stat-value {
+            font-size: 52px;
+            font-weight: 700;
+            color: #a78bfa;
+            margin-bottom: 8px;
+            line-height: 1;
+            text-shadow: 0 0 30px rgba(167, 139, 250, 0.3);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+        
+        /* Graph Section */
+        .graph-section {
+            background: rgba(30, 35, 55, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(139, 92, 246, 0.12);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        
+        .section-icon {
+            font-size: 28px;
+        }
+        
+        .section-title {
+            font-size: 26px;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .graph-controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .graph-btn {
+            padding: 12px 28px;
+            background: rgba(50, 55, 75, 0.6);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 12px;
+            color: #9ca3af;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .graph-btn:hover {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: #8b5cf6;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        
+        .graph-btn.active {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            border-color: transparent;
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
+        }
+        
+        .graph-info {
+            text-align: center;
+            padding: 16px;
+            background: rgba(20, 25, 40, 0.6);
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: #9ca3af;
+            border: 1px solid rgba(139, 92, 246, 0.1);
+        }
+        
+        .graph-info span {
+            margin: 0 12px;
+        }
+        
+        .graph-info .dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        
+        .dot-real { background: #10b981; }
+        .dot-fake { background: #ef4444; }
+        
+        #graphCanvas {
+            width: 100%;
+            height: 700px;
+            background: rgba(15, 20, 35, 0.8);
+            border-radius: 16px;
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            cursor: pointer;
+            box-shadow: inset 0 2px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .graph-legend {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-top: 24px;
+            padding: 20px;
+            background: rgba(20, 25, 40, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(139, 92, 246, 0.1);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #d1d5db;
+        }
+        
+        .legend-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .legend-circle.user { 
+            background: #6366f1;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        }
+        .legend-circle.product { 
+            background: #10b981;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+        }
+        .legend-circle.review-fake { 
+            background: #ef4444;
+            border-color: #ef4444;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+        }
+        .legend-circle.review-real { 
+            background: #10b981;
+            border-color: #10b981;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+        }
+        .legend-circle.suspicious { 
+            background: #6366f1; 
+            border-color: #ef4444;
+            border-width: 3px;
+        }
+        
+        .legend-line {
+            width: 30px;
+            height: 2px;
+            background: #6b7280;
+        }
+        
+        .graph-hint {
+            text-align: center;
+            margin-top: 16px;
+            color: #6b7280;
+            font-size: 14px;
+            font-style: italic;
+        }
+        
+        /* Node Details Panel */
+        .node-details-panel {
+            position: fixed;
+            right: -450px;
+            top: 0;
+            width: 450px;
+            height: 100vh;
+            background: rgba(20, 25, 40, 0.98);
+            backdrop-filter: blur(30px);
+            border-left: 1px solid rgba(139, 92, 246, 0.3);
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .node-details-panel.show {
+            right: 0;
+        }
+        
+        .node-details-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .node-details-panel::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .node-details-panel::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            border-radius: 10px;
+        }
+        
+        .panel-header {
+            padding: 32px 28px;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%);
+        }
+        
+        .panel-close {
+            float: right;
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 10px;
+            color: #9ca3af;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .panel-close:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            color: #fff;
+        }
+        
+        .panel-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .panel-subtitle {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+        
+        .panel-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 24px 28px;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        }
+        
+        .panel-stat {
+            background: rgba(30, 35, 50, 0.6);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(139, 92, 246, 0.1);
+        }
+        
+        .panel-stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #a78bfa;
+            margin-bottom: 4px;
+        }
+        
+        .panel-stat-label {
+            font-size: 12px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .panel-reviews {
+            padding: 24px 28px;
+        }
+        
+        .panel-reviews-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .panel-review-card {
+            background: rgba(30, 35, 50, 0.5);
+            border: 1px solid rgba(139, 92, 246, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+        }
+        
+        .panel-review-card:hover {
+            background: rgba(40, 45, 60, 0.6);
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+        
+        .panel-review-card.fake {
+            border-left: 3px solid #ef4444;
+        }
+        
+        .panel-review-card.real {
+            border-left: 3px solid #10b981;
+        }
+        
+        .panel-review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .panel-review-rating {
+            color: #fbbf24;
+            font-size: 14px;
+        }
+        
+        .panel-review-text {
+            color: #d1d5db;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+        
+        .panel-review-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #6b7280;
+        }
+        
+        .panel-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+        
+        .panel-empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 40px;
+        }
+        
+        .section {
+            background: rgba(30, 35, 55, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(139, 92, 246, 0.12);
+            border-radius: 24px;
+            padding: 36px;
+        }
+        
+        .section-header-small {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+        
+        .section-title-small {
+            font-size: 22px;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+        
+        .tab-btn {
+            padding: 10px 24px;
+            background: rgba(50, 55, 75, 0.5);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: 10px;
+            color: #9ca3af;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(139, 92, 246, 0.15);
+            color: #fff;
+        }
+        
+        .tab-btn.active {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            border-color: transparent;
+            color: #fff;
+        }
+        
+        /* Reviews */
+        .reviews-container {
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+        
+        .reviews-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .reviews-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        
+        .reviews-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            border-radius: 10px;
+        }
+        
+        .review-card {
+            background: rgba(40, 45, 65, 0.5);
+            border: 1px solid rgba(139, 92, 246, 0.1);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+        }
+        
+        .review-card:hover {
+            background: rgba(50, 55, 75, 0.6);
+            border-color: rgba(139, 92, 246, 0.3);
+            transform: translateX(4px);
+        }
+        
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .review-user {
+            font-weight: 600;
+            color: #e5e7eb;
+            font-size: 14px;
+        }
+        
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        
+        .badge-fake {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        .badge-real {
+            background: rgba(16, 185, 129, 0.15);
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .review-text {
+            color: #9ca3af;
+            line-height: 1.5;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .review-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+        
+        .error-message {
+            text-align: center;
+            padding: 40px;
+            color: #ef4444;
+        }
+        
+        /* Predict Section */
+        textarea {
+            width: 100%;
+            min-height: 160px;
+            background: rgba(20, 25, 40, 0.6);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: 14px;
+            padding: 18px;
+            color: #e5e7eb;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 16px;
+            transition: all 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+            background: rgba(30, 35, 50, 0.7);
+        }
+        
+        textarea::placeholder {
+            color: #6b7280;
+        }
+        
+        .predict-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+        }
+        
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.5);
+        }
+        
+        .predict-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result-box {
+            margin-top: 24px;
+            padding: 28px;
+            background: rgba(20, 25, 40, 0.6);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: 14px;
+            display: none;
+        }
+        
+        .result-box.show {
+            display: block;
+            animation: fadeIn 0.4s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result-box.fake {
+            border-color: rgba(239, 68, 68, 0.4);
+            background: rgba(239, 68, 68, 0.08);
+        }
+        
+        .result-box.real {
+            border-color: rgba(16, 185, 129, 0.4);
+            background: rgba(16, 185, 129, 0.08);
+        }
+        
+        .result-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .result-confidence {
+            font-size: 16px;
+            color: #9ca3af;
+            margin-bottom: 20px;
+        }
+        
+        .prob-bars {
+            display: grid;
+            gap: 14px;
+        }
+        
+        .prob-item {
+            display: grid;
+            gap: 8px;
+        }
+        
+        .prob-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 600;
+            color: #d1d5db;
+        }
+        
+        .prob-bar {
+            height: 28px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        
+        .prob-fill {
+            height: 100%;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .prob-fill.real {
+            background: linear-gradient(90deg, #10b981, #059669);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+        
+        .prob-fill.fake {
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            margin-top: 24px;
+        }
+        
+        .page-btn {
+            padding: 8px 18px;
+            background: rgba(50, 55, 75, 0.5);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: 10px;
+            color: #9ca3af;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .page-btn:hover:not(:disabled) {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: #8b5cf6;
+            color: #fff;
+        }
+        
+        .page-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .page-info {
+            color: #9ca3af;
+            font-size: 13px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 42px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-links {
+                gap: 24px;
+                font-size: 14px;
+            }
+            
+            .graph-controls {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav>
+            <div class="logo">
+                <div class="logo-icon">⊕</div>
+                <span>ReviewGuard AI</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#overview" class="active">Overview</a></li>
+                <li><a href="#graph">Graph Network</a></li>
+                <li><a href="#analysis">Review Analysis</a></li>
+                <li><a href="#test">Test Review</a></li>
+            </ul>
+        </nav>
+        
+        <!-- Hero -->
+        <div class="hero" id="overview">
+            <div style="display: inline-block; padding: 8px 20px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 20px; color: #6ee7b7; font-size: 13px; font-weight: 600; margin-bottom: 20px;">
+                ✓ AmazonDS Model - Real Labels
+            </div>
+            <h1>Detect Fake Reviews with<br><span class="gradient-text">Hybrid AI</span></h1>
+            <p>Combining Transformer-based NLP with Graph Neural Networks to identify fraudulent reviews with unprecedented accuracy and explainability.</p>
+        </div>
+        
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalReviews">-</div>
+                <div class="stat-label">Total Reviews</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="fakeReviews">-</div>
+                <div class="stat-label">Fake Reviews</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="realReviews">-</div>
+                <div class="stat-label">Real Reviews</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="accuracy">-</div>
+                <div class="stat-label">Model Accuracy</div>
+            </div>
+        </div>
+        
+        <!-- Interactive Graph Section -->
+        <div class="graph-section" id="graph">
+            <div class="section-header">
+                <span class="section-icon">🌐</span>
+                <h2 class="section-title">Interactive User-Product Graph</h2>
+            </div>
+            
+            <div class="graph-controls">
+                <button class="graph-btn active" onclick="resetGraph()">
+                    <span>🔄</span> Reset View
+                </button>
+                <button class="graph-btn" onclick="showOnlyFake()">
+                    <span>⚠️</span> Show Fake Only
+                </button>
+                <button class="graph-btn" onclick="showOnlyReal()">
+                    <span>✓</span> Show Real Only
+                </button>
+            </div>
+            
+            <div class="graph-info">
+                <span><strong id="graphNodes">-</strong> nodes</span> |
+                <span><strong id="graphEdges">-</strong> connections</span> |
+                <span><span class="dot dot-fake"></span> <strong id="fakeReviews">-</strong> fake</span> |
+                <span><span class="dot dot-real"></span> <strong id="realReviews">-</strong> real</span>
+            </div>
+            
+            <canvas id="graphCanvas"></canvas>
+            
+            <div class="graph-legend">
+                <div class="legend-item">
+                    <div class="legend-circle user"></div>
+                    <span>User</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-circle product"></div>
+                    <span>Product</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-circle suspicious"></div>
+                    <span>Suspicious</span>
+                </div>
+                <div class="legend-item">
+                    <div style="width: 30px; height: 3px; background: #ef4444; border-radius: 2px;"></div>
+                    <span>Fake Review</span>
+                </div>
+                <div class="legend-item">
+                    <div style="width: 30px; height: 2px; background: #6b7280; border-radius: 2px;"></div>
+                    <span>Real Review</span>
+                </div>
+            </div>
+            
+            <div class="graph-hint">💡 Click on any node to see its connections and reviews</div>
+        </div>
+        
+        <!-- Node Details Panel -->
+        <div class="node-details-panel" id="nodeDetailsPanel">
+            <div class="panel-header">
+                <button class="panel-close" onclick="closeNodeDetails()">×</button>
+                <div class="panel-title" id="panelTitle">
+                    <span id="panelIcon"></span>
+                    <span id="panelName"></span>
+                </div>
+                <div class="panel-subtitle" id="panelSubtitle"></div>
+            </div>
+            
+            <div class="panel-stats" id="panelStats">
+                <div class="panel-stat">
+                    <div class="panel-stat-value" id="statTotal">-</div>
+                    <div class="panel-stat-label">Total Reviews</div>
+                </div>
+                <div class="panel-stat">
+                    <div class="panel-stat-value" id="statFake" style="color: #ef4444;">-</div>
+                    <div class="panel-stat-label">Fake Reviews</div>
+                </div>
+                <div class="panel-stat">
+                    <div class="panel-stat-value" id="statReal" style="color: #10b981;">-</div>
+                    <div class="panel-stat-label">Real Reviews</div>
+                </div>
+                <div class="panel-stat">
+                    <div class="panel-stat-value" id="statPercent">-</div>
+                    <div class="panel-stat-label">Fake Percentage</div>
+                </div>
+            </div>
+            
+            <div class="panel-reviews">
+                <div class="panel-reviews-header">
+                    <span>📝</span>
+                    <span>Reviews</span>
+                </div>
+                <div id="panelReviewsList">
+                    <div class="panel-empty">
+                        <div class="panel-empty-icon">📭</div>
+                        <div>No reviews to display</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Content Grid -->
+        <div class="content-grid">
+            <!-- Review Analysis -->
+            <div class="section" id="analysis">
+                <div class="section-header-small">
+                    <span class="section-icon">📊</span>
+                    <h3 class="section-title-small">Review Analysis</h3>
+                </div>
+                
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="filterReviews('all')">All Reviews</button>
+                    <button class="tab-btn" onclick="filterReviews('fake')">Fake Only</button>
+                    <button class="tab-btn" onclick="filterReviews('real')">Real Only</button>
+                </div>
+                
+                <div class="reviews-container" id="reviewsList">
+                    <div class="loading">Loading reviews...</div>
+                </div>
+                
+                <div class="pagination" id="pagination"></div>
+            </div>
+            
+            <!-- Test Review -->
+            <div class="section" id="test">
+                <div class="section-header-small">
+                    <span class="section-icon">🎯</span>
+                    <h3 class="section-title-small">Test a Review</h3>
+                </div>
+                
+                <textarea id="reviewInput" placeholder="Enter a review text to check if it's fake or real..."></textarea>
+                <button class="predict-btn" onclick="predictReview()">Analyze Review</button>
+                
+                <div class="result-box" id="resultBox">
+                    <div class="result-title" id="resultTitle"></div>
+                    <div class="result-confidence" id="resultConfidence"></div>
+                    
+                    <div class="prob-bars">
+                        <div class="prob-item">
+                            <div class="prob-label">
+                                <span>Real Review</span>
+                                <span id="realProb">0%</span>
+                            </div>
+                            <div class="prob-bar">
+                                <div class="prob-fill real" id="realBar"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="prob-item">
+                            <div class="prob-label">
+                                <span>Fake Review</span>
+                                <span id="fakeProb">0%</span>
+                            </div>
+                            <div class="prob-bar">
+                                <div class="prob-fill fake" id="fakeBar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentPage = 1;
+        let currentFilter = 'all';
+        let graphData = null;
+        let filterMode = 'all';
+        let canvas, ctx;
+        let hoveredNode = null;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            canvas = document.getElementById('graphCanvas');
+            ctx = canvas.getContext('2d');
+            
+            loadStats();
+            loadGraph();
+            loadReviews();
+            
+            // Canvas mouse events
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('click', handleCanvasClick);
+            
+            // Smooth scroll navigation
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const target = this.getAttribute('href').substring(1);
+                    const element = document.getElementById(target);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeNodeDetails();
+                }
+            });
+        });
+        
+        // Load statistics
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+                
+                document.getElementById('totalReviews').textContent = stats.total_reviews.toLocaleString();
+                document.getElementById('fakeReviews').textContent = stats.fake_reviews.toLocaleString();
+                document.getElementById('realReviews').textContent = stats.real_reviews.toLocaleString();
+                document.getElementById('accuracy').textContent = (stats.accuracy * 100).toFixed(1) + '%';
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+        
+        // Load graph data
+        async function loadGraph() {
+            try {
+                const response = await fetch('/api/graph');
+                graphData = await response.json();
+                
+                if (graphData.error) {
+                    console.error('Graph error:', graphData.error);
+                    return;
+                }
+                
+                // Load stats to get total fake/real counts
+                const statsResponse = await fetch('/api/stats');
+                const stats = await statsResponse.json();
+                
+                document.getElementById('graphNodes').textContent = graphData.stats.total_nodes;
+                document.getElementById('graphEdges').textContent = graphData.stats.total_edges;
+                document.getElementById('fakeReviews').textContent = stats.fake_reviews.toLocaleString();
+                document.getElementById('realReviews').textContent = stats.real_reviews.toLocaleString();
+                
+                renderGraph();
+            } catch (error) {
+                console.error('Error loading graph:', error);
+            }
+        }
+        
+        // Reset graph view
+        function resetGraph() {
+            filterMode = 'all';
+            document.querySelectorAll('.graph-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderGraph();
+        }
+        
+        // Show only fake reviews
+        function showOnlyFake() {
+            filterMode = 'fake';
+            document.querySelectorAll('.graph-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderGraph();
+        }
+        
+        // Show only real reviews
+        function showOnlyReal() {
+            filterMode = 'real';
+            document.querySelectorAll('.graph-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderGraph();
+        }
+        
+        // Render graph on canvas
+        function renderGraph() {
+            if (!graphData) return;
+            
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 700;
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Filter edges based on mode
+            let edges = graphData.edges;
+            if (filterMode === 'fake') {
+                edges = edges.filter(e => e.isFake);
+            } else if (filterMode === 'real') {
+                edges = edges.filter(e => !e.isFake);
+            }
+            
+            // Separate users and products
+            const userNodes = graphData.nodes.filter(n => n.type === 'user');
+            const productNodes = graphData.nodes.filter(n => n.type === 'product');
+            
+            // Calculate positions - simple two-column layout with better spacing
+            const nodes = graphData.nodes.map(node => {
+                let x, y;
+                
+                const topPadding = 100;
+                const bottomPadding = 100;
+                const centerY = height / 2;
+                
+                if (node.type === 'user') {
+                    // Users on the left
+                    const userIndex = userNodes.indexOf(node);
+                    const totalUsers = userNodes.length;
+                    if (totalUsers === 1) {
+                        x = width * 0.25;
+                        y = centerY;
+                    } else {
+                        const availableHeight = height - topPadding - bottomPadding;
+                        const spacing = availableHeight / (totalUsers - 1);
+                        x = width * 0.25;
+                        y = topPadding + userIndex * spacing;
+                    }
+                } else {
+                    // Products on the right
+                    const productIndex = productNodes.indexOf(node);
+                    const totalProducts = productNodes.length;
+                    if (totalProducts === 1) {
+                        x = width * 0.75;
+                        y = centerY;
+                    } else {
+                        const availableHeight = height - topPadding - bottomPadding;
+                        const spacing = availableHeight / (totalProducts - 1);
+                        x = width * 0.75;
+                        y = topPadding + productIndex * spacing;
+                    }
+                }
+                
+                return {
+                    ...node,
+                    x: x,
+                    y: y,
+                    radius: 35
+                };
+            });
+            
+            canvas.nodes = nodes;
+            
+            // Draw edges with better styling
+            edges.forEach(edge => {
+                const from = nodes.find(n => n.id === edge.from);
+                const to = nodes.find(n => n.id === edge.to);
+                
+                if (from && to) {
+                    ctx.beginPath();
+                    ctx.moveTo(from.x, from.y);
+                    ctx.lineTo(to.x, to.y);
+                    
+                    const edgeColor = edge.isFake ? '#ef4444' : '#6b7280';
+                    ctx.strokeStyle = edgeColor;
+                    ctx.lineWidth = edge.isFake ? 2 : 1.5;
+                    ctx.globalAlpha = edge.isFake ? 0.5 : 0.25;
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                }
+            });
+            
+            // Draw nodes
+            nodes.forEach(node => {
+                const isHovered = hoveredNode && hoveredNode.id === node.id;
+                const isSuspicious = node.fakeReviews > 0;
+                
+                // Outer glow for suspicious nodes
+                if (isSuspicious) {
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, node.radius + 6, 0, 2 * Math.PI);
+                    const gradient = ctx.createRadialGradient(node.x, node.y, node.radius, node.x, node.y, node.radius + 6);
+                    gradient.addColorStop(0, 'rgba(239, 68, 68, 0.4)');
+                    gradient.addColorStop(1, 'rgba(239, 68, 68, 0)');
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+                }
+                
+                // Hover glow
+                if (isHovered) {
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, node.radius + 8, 0, 2 * Math.PI);
+                    const gradient = ctx.createRadialGradient(node.x, node.y, node.radius, node.x, node.y, node.radius + 8);
+                    gradient.addColorStop(0, 'rgba(139, 92, 246, 0.5)');
+                    gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+                }
+                
+                // Main circle with gradient
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, node.radius, 0, 2 * Math.PI);
+                
+                let gradient;
+                if (node.type === 'user') {
+                    gradient = ctx.createRadialGradient(node.x - node.radius/3, node.y - node.radius/3, 0, node.x, node.y, node.radius);
+                    gradient.addColorStop(0, '#818cf8');
+                    gradient.addColorStop(1, '#6366f1');
+                } else {
+                    gradient = ctx.createRadialGradient(node.x - node.radius/3, node.y - node.radius/3, 0, node.x, node.y, node.radius);
+                    gradient.addColorStop(0, '#34d399');
+                    gradient.addColorStop(1, '#10b981');
+                }
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // Border
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, node.radius, 0, 2 * Math.PI);
+                if (isSuspicious) {
+                    ctx.strokeStyle = isHovered ? '#a78bfa' : '#ef4444';
+                    ctx.lineWidth = 3;
+                } else {
+                    ctx.strokeStyle = isHovered ? '#a78bfa' : 'rgba(255, 255, 255, 0.4)';
+                    ctx.lineWidth = isHovered ? 2.5 : 2;
+                }
+                ctx.stroke();
+                
+                // Label
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 16px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 4;
+                ctx.fillText(node.label, node.x, node.y);
+                ctx.shadowBlur = 0;
+                
+                // Type label below node
+                ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                const typeLabel = node.type === 'user' ? 'User' : 'Product';
+                ctx.fillText(typeLabel, node.x, node.y + node.radius + 16);
+                
+                // Review count
+                ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.fillText(`${node.reviews} review${node.reviews !== 1 ? 's' : ''}`, node.x, node.y + node.radius + 30);
+                
+                // Suspicious label
+                if (isSuspicious) {
+                    ctx.fillStyle = '#fca5a5';
+                    ctx.font = 'bold 9px -apple-system, BlinkMacSystemFont, sans-serif';
+                    ctx.fillText('(Suspicious)', node.x, node.y + node.radius + 44);
+                }
+            });
+        }
+        
+        // Handle mouse move for hover effects
+        function handleMouseMove(e) {
+            if (!canvas.nodes) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            let foundNode = null;
+            for (const node of canvas.nodes) {
+                const dx = x - node.x;
+                const dy = y - node.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance <= node.radius) {
+                    foundNode = node;
+                    break;
+                }
+            }
+            
+            if (foundNode !== hoveredNode) {
+                hoveredNode = foundNode;
+                canvas.style.cursor = hoveredNode ? 'pointer' : 'default';
+                renderGraph();
+            }
+        }
+        
+        // Handle canvas click
+        function handleCanvasClick(e) {
+            if (!canvas.nodes) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            for (const node of canvas.nodes) {
+                const dx = x - node.x;
+                const dy = y - node.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance <= node.radius) {
+                    showNodeInfo(node);
+                    return;
+                }
+            }
+        }
+        
+        // Show node information
+        function showNodeInfo(node) {
+            const fakePercent = node.reviews > 0 ? (node.fakeReviews / node.reviews * 100).toFixed(1) : 0;
+            
+            // Update panel header
+            document.getElementById('panelIcon').textContent = node.type === 'user' ? '👤' : '📦';
+            document.getElementById('panelName').textContent = node.label;
+            document.getElementById('panelSubtitle').textContent = node.type === 'user' ? 'User Profile' : 'Product Profile';
+            
+            // Update stats
+            document.getElementById('statTotal').textContent = node.reviews;
+            document.getElementById('statFake').textContent = node.fakeReviews;
+            document.getElementById('statReal').textContent = node.reviews - node.fakeReviews;
+            document.getElementById('statPercent').textContent = fakePercent + '%';
+            
+            // Show panel
+            document.getElementById('nodeDetailsPanel').classList.add('show');
+            
+            // Load reviews for this node
+            loadNodeReviews(node.type, node.realId);
+        }
+        
+        // Close node details panel
+        function closeNodeDetails() {
+            document.getElementById('nodeDetailsPanel').classList.remove('show');
+        }
+        
+        // Load reviews for a specific node
+        async function loadNodeReviews(nodeType, nodeId) {
+            const reviewsList = document.getElementById('panelReviewsList');
+            reviewsList.innerHTML = '<div class="panel-empty"><div class="panel-empty-icon">⏳</div><div>Loading reviews...</div></div>';
+            
+            try {
+                const response = await fetch(`/api/node-reviews?type=${nodeType}&id=${nodeId}`);
+                const data = await response.json();
+                
+                if (data.reviews && data.reviews.length > 0) {
+                    let html = '';
+                    
+                    data.reviews.forEach(review => {
+                        const predClass = review.prediction.toLowerCase();
+                        const stars = '⭐'.repeat(review.score);
+                        
+                        html += `
+                            <div class="panel-review-card ${predClass}">
+                                <div class="panel-review-header">
+                                    <span class="panel-review-rating">${stars}</span>
+                                    <span class="badge badge-${predClass}">${review.prediction}</span>
+                                </div>
+                                <div class="panel-review-text">${review.text}</div>
+                                <div class="panel-review-meta">
+                                    <span>Confidence: ${(review.confidence * 100).toFixed(1)}%</span>
+                                    <span>${nodeType === 'user' ? '📦 ' + review.productId : '👤 ' + review.userId}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    if (data.total > 20) {
+                        html += `<div style="text-align: center; color: #6b7280; font-size: 12px; margin-top: 16px;">Showing first 20 of ${data.total} reviews</div>`;
+                    }
+                    
+                    reviewsList.innerHTML = html;
+                } else {
+                    reviewsList.innerHTML = '<div class="panel-empty"><div class="panel-empty-icon">📭</div><div>No reviews found</div></div>';
+                }
+            } catch (error) {
+                console.error('Error loading node reviews:', error);
+                reviewsList.innerHTML = '<div class="panel-empty"><div class="panel-empty-icon">⚠️</div><div>Error loading reviews</div></div>';
+            }
+        }
+        
+        // Load reviews
+        async function loadReviews(page = 1, filter = 'all') {
+            try {
+                const response = await fetch(`/api/reviews?page=${page}&per_page=8&filter=${filter}`);
+                const data = await response.json();
+                
+                const reviewsList = document.getElementById('reviewsList');
+                reviewsList.innerHTML = '';
+                
+                if (data.reviews.length === 0) {
+                    reviewsList.innerHTML = '<div class="loading">No reviews found</div>';
+                    return;
+                }
+                
+                data.reviews.forEach(review => {
+                    const card = document.createElement('div');
+                    card.className = 'review-card';
+                    
+                    card.innerHTML = `
+                        <div class="review-header">
+                            <span class="review-user">${review.user}</span>
+                            <span class="badge badge-${review.prediction.toLowerCase()}">${review.prediction}</span>
+                        </div>
+                        <div class="review-text">${review.text}</div>
+                        <div class="review-meta">
+                            <span>⭐ ${review.score}/5</span>
+                            <span>Confidence: ${(review.confidence * 100).toFixed(1)}%</span>
+                        </div>
+                    `;
+                    
+                    reviewsList.appendChild(card);
+                });
+                
+                updatePagination(data.page, data.total_pages);
+                
+            } catch (error) {
+                console.error('Error loading reviews:', error);
+                document.getElementById('reviewsList').innerHTML = '<div class="error-message">Error loading reviews</div>';
+            }
+        }
+        
+        // Update pagination
+        function updatePagination(currentPage, totalPages) {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+            
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'page-btn';
+            prevBtn.textContent = '← Previous';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => changePage(currentPage - 1);
+            pagination.appendChild(prevBtn);
+            
+            const pageInfo = document.createElement('span');
+            pageInfo.className = 'page-info';
+            pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+            pagination.appendChild(pageInfo);
+            
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'page-btn';
+            nextBtn.textContent = 'Next →';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => changePage(currentPage + 1);
+            pagination.appendChild(nextBtn);
+        }
+        
+        // Change page
+        function changePage(page) {
+            currentPage = page;
+            loadReviews(currentPage, currentFilter);
+        }
+        
+        // Filter reviews
+        function filterReviews(filter) {
+            currentFilter = filter;
+            currentPage = 1;
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            loadReviews(currentPage, currentFilter);
+        }
+        
+        // Predict review
+        async function predictReview() {
+            const text = document.getElementById('reviewInput').value.trim();
+            
+            if (!text) {
+                alert('Please enter a review text');
+                return;
+            }
+            
+            const btn = document.querySelector('.predict-btn');
+            btn.disabled = true;
+            btn.textContent = 'Analyzing...';
+            
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+                
+                const result = await response.json();
+                
+                const resultBox = document.getElementById('resultBox');
+                resultBox.className = `result-box show ${result.prediction.toLowerCase()}`;
+                
+                document.getElementById('resultTitle').textContent = 
+                    result.prediction === 'Fake' ? '⚠️ Fake Review Detected' : '✅ Real Review';
+                
+                document.getElementById('resultConfidence').textContent = 
+                    `Confidence: ${(result.confidence * 100).toFixed(1)}%`;
+                
+                document.getElementById('realProb').textContent = 
+                    `${(result.real_probability * 100).toFixed(1)}%`;
+                document.getElementById('realBar').style.width = 
+                    `${result.real_probability * 100}%`;
+                
+                document.getElementById('fakeProb').textContent = 
+                    `${(result.fake_probability * 100).toFixed(1)}%`;
+                document.getElementById('fakeBar').style.width = 
+                    `${result.fake_probability * 100}%`;
+                
+            } catch (error) {
+                console.error('Error predicting:', error);
+                alert('Error analyzing review');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Analyze Review';
+            }
+        }
+    </script>
+</body>
+</html>
